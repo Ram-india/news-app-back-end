@@ -13,6 +13,7 @@ import  "./cron/emailscheduler.js";
 dotenv.config();
 // Initialize Express app
 const app = express();
+app.use(express.json());
 const allowedOrigins = [process.env.FRONTEND_URL ];
 sendCategoryNewsEmails();
 
