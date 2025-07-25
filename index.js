@@ -13,11 +13,22 @@ import  "./cron/emailscheduler.js";
 dotenv.config();
 // Initialize Express app
 const app = express();
-
+const allowedOrigins = [process.env.FRONTEND_URL ];
 sendCategoryNewsEmails();
 
 //Middleware
-app.use(cors());
+app.use(cors({
+  origin: function (origin, callback) {
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    } else {
+      return callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true,
+}));
+
 app.use(bodyParser.json());
 
 // Connect to MongoDB
