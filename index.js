@@ -19,15 +19,7 @@ sendCategoryNewsEmails();
 
 //Middleware
 app.use(cors({
-  origin: function (origin, callback) {
-    if (!origin) return callback(null, true);
-    if (allowedOrigins.includes(origin)) {
-      return callback(null, true);
-    } else {
-      return callback(new Error('Not allowed by CORS'));
-    }
-  },
-  credentials: true,
+  origin: '*',
 }));
 
 app.use(bodyParser.json());
@@ -46,7 +38,10 @@ app.use("/api/auth", authRoutes);
 app.use("/api/news", newsRoutes);
 app.use('/api/preferences', preferenceRoutes);
 app.use("/api/users", userRoutes );
-
+app.use((err, req, res, next) => {
+  console.error("Error:", err); // log full stack trace
+  res.status(500).json({ message: err.message || "Internal Server Error" });
+});
 
 //server start  
 
