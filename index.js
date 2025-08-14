@@ -14,7 +14,7 @@ dotenv.config();
 // Initialize Express app
 const app = express();
 app.use(express.json());
-const allowedOrigins = [process.env.FRONTEND_URL ];
+const allowedOrigins = [ process.env.CLIENT_URL ];
 sendCategoryNewsEmails();
 
 //Middleware
