@@ -28,6 +28,10 @@ app.use(cors({
 // Handle preflight requests explicitly
 app.options("*", cors());
 
+app.get(/(.*)/, (req, res, next) => {
+  console.log(req.path, req.params); // req.params will be { '0': '/the/path' }
+  next();
+});
 app.use(bodyParser.json());
 
 // Connect to MongoDB
