@@ -14,13 +14,19 @@ dotenv.config();
 // Initialize Express app
 const app = express();
 app.use(express.json());
+
 const allowedOrigins = [ process.env.CLIENT_URL ];
 sendCategoryNewsEmails();
 
 //Middleware
 app.use(cors({
-  origin: '*',
+  origin: allowedOrigins,
+  methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+  credentials: true,
 }));
+// Handle preflight requests explicitly
+app.options("*", cors());
 
 app.use(bodyParser.json());
 
