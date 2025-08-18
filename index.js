@@ -26,7 +26,7 @@ app.use(cors({
   credentials: true,
 }));
 // Handle preflight requests explicitly
-app.options("*", cors());
+
 
 app.get(/(.*)/, (req, res, next) => {
   console.log(req.path, req.params); // req.params will be { '0': '/the/path' }
