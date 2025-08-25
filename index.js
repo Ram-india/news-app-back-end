@@ -13,10 +13,9 @@ import  "./cron/emailscheduler.js";
 dotenv.config();
 // Initialize Express app
 const app = express();
-app.use(express.json());
+
 
 const allowedOrigins = [ process.env.CLIENT_URL ];
-sendCategoryNewsEmails();
 
 //Middleware
 app.use(cors({
@@ -35,8 +34,9 @@ app.get(/(.*)/, (req, res, next) => {
 app.use(bodyParser.json());
 
 // Connect to MongoDB
-
+app.use(express.json());
 connectDB();
+sendCategoryNewsEmails();
 
 //Test Route
 app.get('/', (req, res) => {
