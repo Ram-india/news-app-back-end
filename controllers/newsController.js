@@ -60,27 +60,27 @@ export const searchNews = async (req, res) => {
   }
 };
 
-// // Send breaking news email to all users
-// export const sendBreakingNewsToUsers = async (req, res) => {
-//     try {
-//       const { headline, link } = req.body;
+// Send breaking news email to all users
+export const sendBreakingNewsToUsers = async (req, res) => {
+    try {
+      const { headline, link } = req.body;
   
-//       if (!headline || !link) {
-//         return res.status(400).json({ message: "Headline and link are required." });
-//       }
+      if (!headline || !link) {
+        return res.status(400).json({ message: "Headline and link are required." });
+      }
   
-//       // Step 1: Get all user emails
-//       const users = await User.find({}, "email"); // Only get emails
-//       const emails = users.map((user) => user.email);
+      // Step 1: Get all user emails
+      const users = await User.find({}, "email"); // Only get emails
+      const emails = users.map((user) => user.email);
   
-//       // Step 2: Send emails
-//       for (const email of emails) {
-//         await sendBreakingNewsEmail(email, headline, link);
-//       }
+      // Step 2: Send emails
+      for (const email of emails) {
+        await sendBreakingNewsEmail(email, headline, link);
+      }
   
-//       res.status(200).json({ message: "Breaking news sent to all users." });
-//     } catch (error) {
-//       console.error("Error sending breaking news:", error);
-//       res.status(500).json({ message: "Failed to send breaking news." });
-//     }
-//   };
+      res.status(200).json({ message: "Breaking news sent to all users." });
+    } catch (error) {
+      console.error("Error sending breaking news:", error);
+      res.status(500).json({ message: "Failed to send breaking news." });
+    }
+  };
