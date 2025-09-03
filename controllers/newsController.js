@@ -32,8 +32,16 @@ export const personalizedNews = async (req, res) => {
           apiKey: process.env.NEWS_API_KEY,
         },
       });
-      allArticles.push(...response.data.articles);
+
+      // ✅ Attach category to each article
+      const articlesWithCategory = response.data.articles.map((article) => ({
+        ...article,
+        category, // add category field manually
+      }));
+
+      allArticles.push(...articlesWithCategory);
     }
+
     res.status(200).json({ articles: allArticles });
   } catch (error) {
     console.error("Error fetching personalized news:", error);
