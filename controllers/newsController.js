@@ -19,12 +19,21 @@ export const getTopHeadlines = async (req, res) => {
 
 export const personalizedNews = async (req, res) => {
   try {
+    console.log('Authenticated user:', req.user);// check user from JWT
     const user = await User.findById(req.user.userId);
+
+    if(!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
     const preferences = user.preferences || [];
 
     const allArticles = [];
 
     for (const category of preferences) {
+
+      console.log(`Fetching news for category: ${category}`);
+
       const response = await axios.get("https://newsapi.org/v2/top-headlines", {
         params: {
           category: category,
@@ -33,7 +42,7 @@ export const personalizedNews = async (req, res) => {
         },
       });
 
-      // ✅ Attach category to each article
+      //  Attach category to each article
       const articlesWithCategory = response.data.articles.map((article) => ({
         ...article,
         category, // add category field manually
