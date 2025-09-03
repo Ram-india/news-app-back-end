@@ -1,6 +1,6 @@
 import axios from "axios";
 import User from "../models/User.js";
-// import { sendBreakingNewsEmail } from "../utils/transporter.js";
+import { sendBreakingNewsEmail } from "../utils/transporter.js";
 
 export const getTopHeadlines = async (req, res) => {
   try {
@@ -109,27 +109,48 @@ export const searchNews = async (req, res) => {
   }
 };
 
-// Send breaking news email to all users
 export const sendBreakingNewsToUsers = async (req, res) => {
-    try {
-      const { headline, link } = req.body;
-  
-      if (!headline || !link) {
-        return res.status(400).json({ message: "Headline and link are required." });
-      }
-  
-      // Step 1: Get all user emails
-      const users = await User.find({}, "email"); // Only get emails
-      const emails = users.map((user) => user.email);
-  
-      // Step 2: Send emails
-      for (const email of emails) {
-        await sendBreakingNewsEmail(email, headline, link);
-      }
-  
-      res.status(200).json({ message: "Breaking news sent to all users." });
-    } catch (error) {
-      console.error("Error sending breaking news:", error);
-      res.status(500).json({ message: "Failed to send breaking news." });
+  try {
+    const { headline, link } = req.body;
+
+    if (!headline || !link) {
+      return res.status(400).json({ message: "Headline and link are required." });
     }
-  };
+
+    if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
+      return res.status(500).json({ message: "Email credentials are missing." });
+    }
+
+    // Step 1: Get all user emails
+    const users = await User.find({}, "email");
+    const emails = users.map((user) => user.email);
+
+    if (emails.length === 0) {
+      return res.status(200).json({ message: "No users to send emails to." });
+    }
+
+    // Step 2: Build HTML template
+    const html = `
+      <h2 style="color:#b91c1c;">Breaking News</h2>
+      <p>${headline}</p>
+      <p>
+        <a href="${link}" target="_blank" style="color:#ef4444;font-weight:bold;">
+          Read Full Article →
+        </a>
+      </p>
+    `;
+
+    // Step 3: Send in parallel
+    const results = await Promise.allSettled(
+      emails.map((email) => sendBreakingNewsEmail(email, headline, html))
+    );
+
+    const failed = results.filter((r) => r.status === "rejected").length;
+    res.status(200).json({
+      message: `Breaking news sent. ${failed} failed out of ${emails.length}.`,
+    });
+  } catch (error) {
+    console.error("Error sending breaking news:", error);
+    res.status(500).json({ message: "Failed to send breaking news." });
+  }
+};
