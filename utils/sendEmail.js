@@ -23,10 +23,24 @@ export const sendEmail = async (to, subject, html) => {
     };
 
     const info = await transporter.sendMail(mailOptions);
-    console.log(" Email sent:", info.response);
+    console.log("Email sent:", info.response);
     return info;
   } catch (error) {
-    console.error(" Failed to send email:", error.message);
+    console.error("Failed to send email:", error.message);
     throw error;
   }
+};
+
+// Specialized wrapper for breaking news alerts
+export const sendBreakingNewsEmail = (to, headline, link) => {
+  const html = `
+    <h2 style="color:#b91c1c;">Breaking News</h2>
+    <p>${headline}</p>
+    <p>
+      <a href="${link}" target="_blank" style="color:#ef4444;font-weight:bold;">
+        Read Full Article →
+      </a>
+    </p>
+  `;
+  return sendEmail(to, "Breaking News Alert", html);
 };

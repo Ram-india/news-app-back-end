@@ -1,7 +1,10 @@
 import axios from "axios";
 import User from "../models/User.js";
-import { sendBreakingNewsEmail } from "../utils/transporter.js";
+import { sendBreakingNewsEmail } from "../utils/sendEmail.js";
 
+// ======================
+// Get Top Headlines
+// ======================
 export const getTopHeadlines = async (req, res) => {
   try {
     const response = await axios.get("https://newsapi.org/v2/top-headlines", {
@@ -17,79 +20,77 @@ export const getTopHeadlines = async (req, res) => {
   }
 };
 
-
+// ======================
+// Personalized News
+// ======================
 export const personalizedNews = async (req, res) => {
   try {
-    console.log("Authenticated user:", req.user); // check user from JWT
+    console.log("Authenticated user:", req.user);
 
-    //  1. Get user from DB
     const user = await User.findById(req.user.userId);
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
 
-    //  2. Ensure preferences exist
     const preferences = user.preferences || [];
     if (preferences.length === 0) {
       return res.status(200).json({ articles: [] });
     }
 
-    //  3. Ensure API key exists
     if (!process.env.NEWS_API_KEY) {
       return res.status(500).json({ message: "NEWS_API_KEY is missing" });
     }
 
-    const allArticles = [];
+    // Fetch all categories in parallel
+    const results = await Promise.all(
+      preferences.map(async (category) => {
+        try {
+          console.log(`Fetching news for category: ${category}`);
+          const response = await axios.get(
+            "https://newsapi.org/v2/top-headlines",
+            {
+              params: { category, country: "us", apiKey: process.env.NEWS_API_KEY },
+            }
+          );
 
-    //  4. Fetch news for each category safely
-    for (const category of preferences) {
-      try {
-        console.log(`Fetching news for category: ${category}`);
-        const response = await axios.get("https://newsapi.org/v2/top-headlines", {
-          params: {
+          return response.data.articles.map((article) => ({
+            ...article,
             category,
-            country: "us",
-            apiKey: process.env.NEWS_API_KEY,
-          },
-        });
+          }));
+        } catch (err) {
+          console.error(`Error fetching ${category}:`, err.response?.data || err.message);
+          return [
+            {
+              title: `No live news available for ${category}`,
+              description: "Showing default fallback news.",
+              url: "#",
+              urlToImage: "https://via.placeholder.com/400x200.png?text=No+News",
+              source: { name: "Fallback" },
+              publishedAt: new Date().toISOString(),
+              category,
+            },
+          ];
+        }
+      })
+    );
 
-        // Attach category
-        const articlesWithCategory = response.data.articles.map((article) => ({
-          ...article,
-          category,
-        }));
-
-        allArticles.push(...articlesWithCategory);
-      } catch (err) {
-        console.error(` Error fetching ${category}:`, err.response?.data || err.message);
-
-        // Push a fallback article so frontend doesn’t break
-        allArticles.push({
-          title: `No live news available for ${category}`,
-          description: "Showing default fallback news.",
-          url: "#",
-          urlToImage: "https://via.placeholder.com/400x200.png?text=No+News",
-          source: { name: "Fallback" },
-          publishedAt: new Date().toISOString(),
-          category,
-        });
-      }
-    }
-
-    // 5. Send response back
+    const allArticles = results.flat();
     res.status(200).json({ articles: allArticles });
   } catch (error) {
-    console.error(" Critical error fetching personalized news:", error);
-  
+    console.error("Critical error fetching personalized news:", error);
+
     return res.status(500).json({
       message: "Failed to fetch personalized news",
       error: error.message,
-      details: error.response?.data || null, // if it's a NewsAPI issue
+      details: error.response?.data || null,
       stack: process.env.NODE_ENV === "development" ? error.stack : undefined,
     });
   }
 };
 
+// ======================
+// Search News
+// ======================
 export const searchNews = async (req, res) => {
   const { query } = req.query;
   if (!query) {
@@ -109,6 +110,9 @@ export const searchNews = async (req, res) => {
   }
 };
 
+// ======================
+// Send Breaking News Emails
+// ======================
 export const sendBreakingNewsToUsers = async (req, res) => {
   try {
     const { headline, link } = req.body;
@@ -129,25 +133,15 @@ export const sendBreakingNewsToUsers = async (req, res) => {
       return res.status(200).json({ message: "No users to send emails to." });
     }
 
-    // Step 2: Build HTML template
-    const html = `
-      <h2 style="color:#b91c1c;">Breaking News</h2>
-      <p>${headline}</p>
-      <p>
-        <a href="${link}" target="_blank" style="color:#ef4444;font-weight:bold;">
-          Read Full Article →
-        </a>
-      </p>
-    `;
-
-    // Step 3: Send in parallel
+    // Step 2: Send emails in parallel
     const results = await Promise.allSettled(
-      emails.map((email) => sendBreakingNewsEmail(email, headline, html))
+      emails.map((email) => sendBreakingNewsEmail(email, headline, link))
     );
 
-    const failed = results.filter((r) => r.status === "rejected").length;
+    const failed = results.filter((r) => r.status === "rejected");
     res.status(200).json({
-      message: `Breaking news sent. ${failed} failed out of ${emails.length}.`,
+      message: `Breaking news sent. ${failed.length} failed out of ${emails.length}.`,
+      failedEmails: failed.map((f, idx) => emails[idx]), // optional: list failed addresses
     });
   } catch (error) {
     console.error("Error sending breaking news:", error);
