@@ -6,27 +6,26 @@ dotenv.config();
 export const sendEmail = async (to, subject, html) => {
   try {
     const transporter = nodemailer.createTransport({
-      host: "smtp.gmail.com",
-      port: 465,
-      secure: true, // true for 465, false for 587
+      host: "smtp.sendgrid.net",
+      port: 587,
       auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS, // should be an App Password
+        user: "apikey", // This is literally the string "apikey"
+        pass: process.env.SENDGRID_API_KEY,
       },
     });
 
     const mailOptions = {
-      from: `"News App" <${process.env.EMAIL_USER}>`,
+      from: `"News App" <${process.env.EMAIL_USER}>`, // must match a verified sender in SendGrid
       to,
       subject,
       html,
     };
 
     const info = await transporter.sendMail(mailOptions);
-    console.log("Email sent:", info.response);
+    console.log("Email sent via SendGrid:", info.response);
     return info;
   } catch (error) {
-    console.error("Failed to send email:", error.message);
+    console.error(" Failed to send email:", error);
     throw error;
   }
 };
