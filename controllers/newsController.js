@@ -17,8 +17,6 @@ export const getTopHeadlines = async (req, res) => {
   }
 };
 
-import axios from "axios";
-import User from "../models/User.js";
 
 export const personalizedNews = async (req, res) => {
   try {
@@ -81,8 +79,14 @@ export const personalizedNews = async (req, res) => {
     // 5. Send response back
     res.status(200).json({ articles: allArticles });
   } catch (error) {
-    console.error("🔥 Critical error fetching personalized news:", error.message);
-    res.status(500).json({ message: "Server error while fetching personalized news" });
+    console.error(" Critical error fetching personalized news:", error);
+  
+    return res.status(500).json({
+      message: "Failed to fetch personalized news",
+      error: error.message,
+      details: error.response?.data || null, // if it's a NewsAPI issue
+      stack: process.env.NODE_ENV === "development" ? error.stack : undefined,
+    });
   }
 };
 
