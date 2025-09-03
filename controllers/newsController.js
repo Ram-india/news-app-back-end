@@ -17,44 +17,72 @@ export const getTopHeadlines = async (req, res) => {
   }
 };
 
+import axios from "axios";
+import User from "../models/User.js";
+
 export const personalizedNews = async (req, res) => {
   try {
-    console.log('Authenticated user:', req.user);// check user from JWT
-    const user = await User.findById(req.user.userId);
+    console.log("Authenticated user:", req.user); // check user from JWT
 
-    if(!user) {
+    //  1. Get user from DB
+    const user = await User.findById(req.user.userId);
+    if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
 
+    //  2. Ensure preferences exist
     const preferences = user.preferences || [];
+    if (preferences.length === 0) {
+      return res.status(200).json({ articles: [] });
+    }
+
+    //  3. Ensure API key exists
+    if (!process.env.NEWS_API_KEY) {
+      return res.status(500).json({ message: "NEWS_API_KEY is missing" });
+    }
 
     const allArticles = [];
 
+    //  4. Fetch news for each category safely
     for (const category of preferences) {
+      try {
+        console.log(`Fetching news for category: ${category}`);
+        const response = await axios.get("https://newsapi.org/v2/top-headlines", {
+          params: {
+            category,
+            country: "us",
+            apiKey: process.env.NEWS_API_KEY,
+          },
+        });
 
-      console.log(`Fetching news for category: ${category}`);
+        // Attach category
+        const articlesWithCategory = response.data.articles.map((article) => ({
+          ...article,
+          category,
+        }));
 
-      const response = await axios.get("https://newsapi.org/v2/top-headlines", {
-        params: {
-          category: category,
-          country: "us",
-          apiKey: process.env.NEWS_API_KEY,
-        },
-      });
+        allArticles.push(...articlesWithCategory);
+      } catch (err) {
+        console.error(` Error fetching ${category}:`, err.response?.data || err.message);
 
-      //  Attach category to each article
-      const articlesWithCategory = response.data.articles.map((article) => ({
-        ...article,
-        category, // add category field manually
-      }));
-
-      allArticles.push(...articlesWithCategory);
+        // Push a fallback article so frontend doesn’t break
+        allArticles.push({
+          title: `No live news available for ${category}`,
+          description: "Showing default fallback news.",
+          url: "#",
+          urlToImage: "https://via.placeholder.com/400x200.png?text=No+News",
+          source: { name: "Fallback" },
+          publishedAt: new Date().toISOString(),
+          category,
+        });
+      }
     }
 
+    // 5. Send response back
     res.status(200).json({ articles: allArticles });
   } catch (error) {
-    console.error("Error fetching personalized news:", error);
-    res.status(500).json({ message: "Failed to fetch personalized news" });
+    console.error("🔥 Critical error fetching personalized news:", error.message);
+    res.status(500).json({ message: "Server error while fetching personalized news" });
   }
 };
 
