@@ -7,6 +7,7 @@ import { sendBreakingNewsEmail } from "../utils/sendEmail.js";
 // ======================
 export const getTopHeadlines = async (req, res) => {
   try {
+    console.log("Using API Key:", process.env.NEWS_API_KEY);
     const response = await axios.get("https://newsapi.org/v2/top-headlines", {
       params: {
         country: "us",
@@ -25,6 +26,7 @@ export const getTopHeadlines = async (req, res) => {
 // ======================
 export const personalizedNews = async (req, res) => {
   try {
+    console.log("Using API Key:", process.env.NEWS_API_KEY);
     console.log("Authenticated user:", req.user);
 
     const user = await User.findById(req.user.userId);
@@ -97,6 +99,7 @@ export const searchNews = async (req, res) => {
     return res.status(400).json({ message: "Query parameter is required" });
   }
   try {
+    console.log("Using API Key:", process.env.NEWS_API_KEY);
     const response = await axios.get("https://newsapi.org/v2/everything", {
       params: {
         q: query,
@@ -115,6 +118,7 @@ export const searchNews = async (req, res) => {
 // ======================
 export const sendBreakingNewsToUsers = async (req, res) => {
   try {
+    console.log("Using API Key:", process.env.NEWS_API_KEY);
     const { headline, link } = req.body;
 
     if (!headline || !link) {

@@ -12,6 +12,6 @@ const router = express.Router();
 router.get('/top-headlines', getTopHeadlines);
 router.get('/personalized', authMiddleware, personalizedNews);
 router.get('/search', searchNews);
-// router.post('/send-breaking-news', sendBreakingNewsToUsers)
+//router.post('/send-breaking-news', sendBreakingNewsToUsers)
 
 export default router;

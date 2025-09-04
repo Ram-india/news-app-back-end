@@ -63,6 +63,7 @@ app.use("/api/news", newsRoutes);
 app.use("/api/preferences", preferenceRoutes);
 app.use("/api/users", userRoutes);
 
+console.log("Using API Key:", process.env.NEWS_API_KEY);
 // Server start
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
