@@ -9,6 +9,7 @@ import preferenceRoutes from "./routes/preferenceRoutes.js";
 import { sendCategoryNewsEmails } from './controllers/emailController.js';
 import userRoutes from "./routes/userRoutes.js";
 import "./cron/emailscheduler.js";
+import testRoutes from "./routes/testRoutes.js";
 
 dotenv.config();
 
@@ -62,6 +63,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/news", newsRoutes);
 app.use("/api/preferences", preferenceRoutes);
 app.use("/api/users", userRoutes);
+app.use("/api/test",testRoutes); 
 
 console.log("Using API Key:", process.env.NEWS_API_KEY);
 // Server start
