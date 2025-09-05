@@ -1,4 +1,4 @@
----
+
 
 # ⚙️ **Backend README.md (Express + Render + MongoDB)**
 
@@ -8,7 +8,6 @@
 This is the **backend** of the News App, built with **Node.js + Express + MongoDB**.  
 It powers authentication, user preferences, personalized news fetching, and automated email alerts.
 
----
 
 ## 🚀 Features
 - JWT-based authentication (signup/login).
@@ -18,7 +17,7 @@ It powers authentication, user preferences, personalized news fetching, and auto
 - Cron jobs for automated news delivery.
 - Deployed on **Render**.
 
----
+
 
 ## 🛠️ Tech Stack
 - **Node.js + Express**
@@ -28,7 +27,7 @@ It powers authentication, user preferences, personalized news fetching, and auto
 - **Cron (node-cron)**
 - **Render (deployment)**
 
----
+
 
 ## ⚙️ Setup Instructions
 
