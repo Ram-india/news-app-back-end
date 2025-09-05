@@ -114,11 +114,10 @@ export const searchNews = async (req, res) => {
 };
 
 // ======================
-// Send Breaking News Emails
+// Send Breaking News Emails (Immediate Alerts)
 // ======================
 export const sendBreakingNewsToUsers = async (req, res) => {
   try {
-
     const { headline, link } = req.body;
 
     if (!headline || !link) {
@@ -129,12 +128,17 @@ export const sendBreakingNewsToUsers = async (req, res) => {
       return res.status(500).json({ message: "Email credentials are missing." });
     }
 
-    // Step 1: Get all user emails
-    const users = await User.find({}, "email");
+    // Step 1: Get only users who want immediate alerts
+    const users = await User.find(
+      { alertfrequency: "immediately" },
+      "email"
+    );
     const emails = users.map((user) => user.email);
 
     if (emails.length === 0) {
-      return res.status(200).json({ message: "No users to send emails to." });
+      return res
+        .status(200)
+        .json({ message: "No users with immediate alerts found." });
     }
 
     // Step 2: Send emails in parallel
@@ -142,10 +146,13 @@ export const sendBreakingNewsToUsers = async (req, res) => {
       emails.map((email) => sendBreakingNewsEmail(email, headline, link))
     );
 
-    const failed = results.filter((r) => r.status === "rejected");
+    const failed = results
+      .map((r, i) => (r.status === "rejected" ? emails[i] : null))
+      .filter(Boolean);
+
     res.status(200).json({
-      message: `Breaking news sent. ${failed.length} failed out of ${emails.length}.`,
-      failedEmails: failed.map((f, idx) => emails[idx]), // optional: list failed addresses
+      message: `Breaking news sent to ${emails.length} immediate users. ${failed.length} failed.`,
+      failedEmails: failed,
     });
   } catch (error) {
     console.error("Error sending breaking news:", error);

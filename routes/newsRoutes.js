@@ -18,7 +18,7 @@ router.get("/search", searchNews);
 // Breaking news email to all users (admin-only, so protect with auth if needed)
 router.post("/send-breaking-news", sendBreakingNewsToUsers);
 
-// ✅ Test Gmail SMTP manually
+//  Test Gmail SMTP manually
 router.get("/test-email", async (req, res) => {
   try {
     await sendBreakingNewsEmail(
@@ -28,8 +28,8 @@ router.get("/test-email", async (req, res) => {
     );
     res.json({ message: "✅ Test email sent successfully!" });
   } catch (error) {
-    console.error("❌ SMTP test failed:", error);
-    res.status(500).json({ message: "❌ Failed to send test email", error: error.message });
+    console.error("SMTP test failed:", error);
+    res.status(500).json({ message: " Failed to send test email", error: error.message });
   }
 });
 
