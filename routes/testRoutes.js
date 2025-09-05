@@ -8,7 +8,7 @@ const router = express.Router();
 router.get("/test-email", async (req, res) => {
   try {
     await sendEmail(
-      "yourpersonalemail@gmail.com", // 👈 replace with your Gmail to receive the test
+      "nodemailler.demo@gmail.com", // 👈 replace with your Gmail to receive the test
       "SMTP Test ✔️",
       "<p>This is a test email sent from Render Gmail SMTP</p>"
     );
