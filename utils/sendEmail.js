@@ -25,7 +25,7 @@ export const sendEmail = async (to, subject, html) => {
     };
 
     const info = await transporter.sendMail(mailOptions);
-    console.log("📧 Email sent via Gmail:", info.response);
+    console.log("Email sent via Gmail:", info.response);
     return info;
   } catch (error) {
     console.error(" Failed to send email:", error.message, error);

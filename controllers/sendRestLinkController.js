@@ -17,15 +17,14 @@ export const sendRestLink = async (req, res) => {
     const resetLink = `${process.env.CLIENT_URL}/reset-password/${token}`;
 
     const transporter = nodemailer.createTransport({
-        service: 'smtp.sendgrid.net',
+        service: 'gmail',
         auth: {
-            user: "apikey",
+            user: process.env.EMAIL_USER,
             pass: process.env.EMAIL_PASS,
         },
     });
     await transporter.sendMail({
         from: process.env.EMAIL_USER,
-        port: 587,
         to: email,
         subject: 'Password Reset Link',
         html: `<p>Click <a href="${resetLink}">here</a> to reset your password</p>`,

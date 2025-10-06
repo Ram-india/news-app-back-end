@@ -28,7 +28,7 @@ export const savePreferences = async (req, res) => {
     await user.save();
  
     
-    // res.json({ message: "Preferences saved successfully" });
+    res.json({ message: "Preferences saved successfully" });
   } catch (error) {
     res.status(500).json({ message: "Error saving preferences", error });
   }
