@@ -26,7 +26,7 @@ router.get("/test-email", async (req, res) => {
       "SMTP Test - Breaking News",
       "https://example.com/test-article"
     );
-    res.json({ message: "✅ Test email sent successfully!" });
+    res.json({ message: " Test email sent successfully!" });
   } catch (error) {
     console.error("SMTP test failed:", error);
     res.status(500).json({ message: " Failed to send test email", error: error.message });

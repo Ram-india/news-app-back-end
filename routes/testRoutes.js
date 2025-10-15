@@ -8,13 +8,13 @@ const router = express.Router();
 router.get("/test-email", async (req, res) => {
   try {
     await sendEmail(
-      "nodemailler.demo@gmail.com", // 👈 replace with your Gmail to receive the test
+      "nodemailler.demo@gmail.com", 
       "SMTP Test ✔️",
       "<p>This is a test email sent from Render Gmail SMTP</p>"
     );
-    res.json({ success: true, message: "✅ Test email sent successfully" });
+    res.json({ success: true, message: " Test email sent successfully" });
   } catch (err) {
-    console.error("❌ Test email error:", err);
+    console.error(" Test email error:", err);
     res.status(500).json({ success: false, message: err.message });
   }
 });

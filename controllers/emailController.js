@@ -2,11 +2,14 @@ import User from "../models/User.js";
 import axios from "axios";
 import { sendEmail } from "../utils/sendEmail.js";
 
-// Send personalized category news emails
+// =============================
+// Send Personalized News Emails
+// =============================
 export const sendCategoryNewsEmails = async (frequency = "daily") => {
   try {
+    //  Get users matching alert frequency and preferences
     const users = await User.find({
-      alertfrequency: frequency,
+      alertFrequency: frequency,
       preferences: { $exists: true, $ne: [] },
     });
 
@@ -16,6 +19,7 @@ export const sendCategoryNewsEmails = async (frequency = "daily") => {
       let emailContent = "";
       let hasNews = false;
 
+      // Loop through each user's preferred categories
       for (const category of user.preferences) {
         try {
           const response = await axios.get("https://newsapi.org/v2/top-headlines", {
@@ -27,23 +31,26 @@ export const sendCategoryNewsEmails = async (frequency = "daily") => {
           });
 
           const articles = response.data.articles.slice(0, 3);
-          console.log(`📡 ${articles.length} articles for ${category}`);
+          console.log(` Found ${articles.length} articles for ${category}`);
 
           if (articles.length > 0) {
             hasNews = true;
-            emailContent += `<h3 style="color:#b91c1c;">${category.toUpperCase()}</h3>`;
-            articles.forEach((article) => {
-              emailContent += `
+            emailContent += `
+              <h3 style="color:#b91c1c;">${category.toUpperCase()}</h3>
+              ${articles
+                .map(
+                  (article) => `
                 <p>
                   <a href="${article.url}" target="_blank" style="color:#1d4ed8;text-decoration:none;">
                     ${article.title}
                   </a>
-                </p>`;
-            });
+                </p>
+              `
+                )
+                .join("")}
+            `;
 
-            // Ensure emailLogs exists
-            if (!user.emailLogs) user.emailLogs = [];
-
+            // Add log entry
             user.emailLogs.push({
               category,
               subject: `${category.toUpperCase()} News Update`,
@@ -51,41 +58,46 @@ export const sendCategoryNewsEmails = async (frequency = "daily") => {
             });
           }
         } catch (innerError) {
-          console.error(` Error fetching news for ${category}:`, innerError);
+          console.error(`⚠️ Error fetching news for category '${category}':`, innerError.message);
         }
       }
 
+      // Send email if we have news
       if (hasNews) {
         try {
           const html = `
             <div style="font-family:sans-serif;line-height:1.5">
-              <h2 style="color:#b91c1c;">Hello ${user.name || "Reader"} </h2>
+              <h2 style="color:#b91c1c;">Hello ${user.name || "Reader"},</h2>
               <p>Here are your personalized news updates:</p>
               ${emailContent}
               <hr/>
               <small style="color:#6b7280;">
-                You are receiving this email because you subscribed to personalized news updates.
+                You are receiving this email because you subscribed to personalized ${frequency} news updates.
               </small>
             </div>
           `;
 
-          await sendEmail(user.email, "Your Personalized News Update", html);
+          await sendEmail(user.email, `Your ${frequency} News Update`, html);
           await user.save();
 
-          console.log(`📧 Email sent to ${user.email}`);
+          console.log(`Email sent to ${user.email}`);
         } catch (emailError) {
-          console.error(` Failed to send email to ${user.email}:`, emailError);
+          console.error(`Failed to send email to ${user.email}:`, emailError.message);
         }
+      } else {
+        console.log(`No new articles for ${user.email}`);
       }
     }
 
-    console.log("All personalized emails processed successfully");
+    console.log(`All ${frequency} emails processed successfully`);
   } catch (error) {
-    console.error(" Error in sendCategoryNewsEmails:", error);
+    console.error(` Error in sendCategoryNewsEmails (${frequency}):`, error.message);
   }
 };
 
-// Get email logs for authenticated user
+// =============================
+// Get Email Logs
+// =============================
 export const getEmailLogs = async (req, res) => {
   try {
     const user = await User.findById(req.user.userId);
@@ -93,12 +105,14 @@ export const getEmailLogs = async (req, res) => {
 
     res.json(user.emailLogs || []);
   } catch (error) {
-    console.error("Error fetching email logs:", error);
+    console.error("Error fetching email logs:", error.message);
     res.status(500).json({ message: "Server error" });
   }
 };
 
-// Delete one email log entry
+// =============================
+// Delete Email Log
+// =============================
 export const deleteEmailLog = async (req, res) => {
   try {
     const user = await User.findById(req.user.userId);
@@ -108,9 +122,9 @@ export const deleteEmailLog = async (req, res) => {
     user.emailLogs = user.emailLogs.filter((log) => log._id.toString() !== logId);
     await user.save();
 
-    res.json({ message: "Log deleted" });
+    res.json({ message: "Log deleted successfully" });
   } catch (error) {
-    console.error(" Error deleting email log:", error);
+    console.error("Error deleting email log:", error.message);
     res.status(500).json({ message: "Server error" });
   }
 };

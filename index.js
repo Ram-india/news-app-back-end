@@ -25,16 +25,19 @@ app.use(
   cors({
     origin: (origin, callback) => {
       if (!origin) return callback(null, true); // Allow non-browser clients like Postman
+      
       if (allowedOrigins.includes(origin)) {
         callback(null, true);
       } else {
-        console.log("Blocked by CORS:", origin);
-        callback(new Error("Not allowed by CORS"));
+        console.warn("Blocked by CORS:", origin);
+        return callback(new Error("Not allowed by CORS"));
       }
     },
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
     credentials: true,
+    preflightContinue: false,
+    optionsSuccessStatus: 204, // important for older browsers
   })
 );
 // Handle preflight requests
