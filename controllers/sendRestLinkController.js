@@ -1,11 +1,11 @@
 import User from "../models/User.js";
+import dotenv from "dotenv";
 import jwt from "jsonwebtoken";
 import { sendEmail } from "../utils/sendEmail.js";
-import dotenv from "dotenv";
 
 dotenv.config();
 
-export const sendResetLink = async (req, res) => {
+export const sendRestLink = async (req, res) => {
   const { email } = req.body;
   try {
     const user = await User.findOne({ email });
@@ -21,6 +21,6 @@ export const sendResetLink = async (req, res) => {
     res.json({ message: "Password reset link sent to your email" });
   } catch (error) {
     console.error("Error sending reset link:", error);
-    res.status(500).json({ message: "Internal server error" });
+    return res.status(500).json({ message: "Internal server error" });
   }
 };
