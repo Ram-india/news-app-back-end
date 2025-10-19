@@ -1,36 +1,23 @@
-import nodemailer from "nodemailer";
+import sgMail from "@sendgrid/mail";
 import dotenv from "dotenv";
 
 dotenv.config();
 
-// Create transporter once
-const transporter = nodemailer.createTransport({
-  service: "gmail",
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS,
-  },
-});
-
-// Verify connection once on startup
-transporter.verify()
-  .then(() => console.log(" Gmail SMTP ready"))
-  .catch((err) => console.error(" Gmail SMTP error:", err.message));
+sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
 export const sendEmail = async (to, subject, html) => {
   try {
-    const mailOptions = {
-      from: `"News App" <${process.env.EMAIL_USER}>`,
+    const msg = {
       to,
+      from: process.env.EMAIL_FROM, // Verified sender email in SendGrid
       subject,
       html,
     };
-
-    const info = await transporter.sendMail(mailOptions);
-    console.log(`Email sent to ${to}: ${info.response}`);
+    const info = await sgMail.send(msg);
+    console.log(`Email sent to ${to}`);
     return info;
   } catch (error) {
-    console.error(`❌ Failed to send email to ${to}:`, error.message);
+    console.error(`❌ Failed to send email to ${to}:`, error.response?.body || error.message);
     throw error;
   }
 };
