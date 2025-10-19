@@ -9,25 +9,25 @@ export const sendEmail = async (to, subject, html) => {
   try {
     const msg = {
       to,
-      from: process.env.EMAIL_FROM, // Verified sender email in SendGrid
+      from: process.env.EMAIL_FROM,
       subject,
       html,
     };
-    const info = await sgMail.send(msg);
+    await sgMail.send(msg);
     console.log(`Email sent to ${to}`);
-    return info;
   } catch (error) {
     console.error(`❌ Failed to send email to ${to}:`, error.response?.body || error.message);
     throw error;
   }
 };
 
-// Wrapper for breaking news
-export const sendBreakingNewsEmail = (to, headline, link) => {
+// Breaking news email wrapper
+export const sendBreakingNewsEmail = (to, headline, link, content = "") => {
   const html = `
     <div style="font-family:sans-serif;line-height:1.5">
       <h2 style="color:#b91c1c;">Breaking News</h2>
-      <p style="font-size:16px;">${headline}</p>
+      <h3>${headline}</h3>
+      ${content ? `<p>${content}</p>` : ""}
       <p>
         <a href="${link}" target="_blank" style="color:#ef4444;font-weight:bold;text-decoration:none;">
           Read Full Article →
