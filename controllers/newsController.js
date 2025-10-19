@@ -118,44 +118,62 @@ export const searchNews = async (req, res) => {
 // ======================
 export const sendBreakingNewsToUsers = async (req, res) => {
   try {
-    const { headline, link } = req.body;
+    const { headline, link, category, content } = req.body;
 
     if (!headline || !link) {
       return res.status(400).json({ message: "Headline and link are required." });
     }
 
-    if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
-      return res.status(500).json({ message: "Email credentials are missing." });
-    }
+    // 1️Find users with immediate alerts and matching category (optional filter)
+    const users = await User.find({
+      alertFrequency: "immediate",
+      preferences: category ? { $in: [category] } : { $exists: true },
+    });
 
-    // Step 1: Get only users who want immediate alerts
-    const users = await User.find(
-      { alertfrequency: "immediately" },
-      "email"
-    );
-    const emails = users.map((user) => user.email);
-
-    if (emails.length === 0) {
+    if (users.length === 0) {
       return res
         .status(200)
-        .json({ message: "No users with immediate alerts found." });
+        .json({ message: "No users found with immediate alert preference." });
     }
 
-    // Step 2: Send emails in parallel
+    console.log(`🚀 Sending breaking news to ${users.length} users...`);
+
+    //  Build HTML email
+    const htmlTemplate = `
+      <div style="font-family:sans-serif;line-height:1.6;">
+        <h2 style="color:#dc2626;">Breaking News Alert!</h2>
+        <h3>${headline}</h3>
+        ${content ? `<p>${content}</p>` : ""}
+        <p>
+          <a href="${link}" target="_blank" style="color:#1d4ed8;">Read full story</a>
+        </p>
+        <hr/>
+        <small style="color:#6b7280;">
+          You are receiving this email because you subscribed to immediate news alerts.
+        </small>
+      </div>
+    `;
+
+    // Send to all users in parallel
     const results = await Promise.allSettled(
-      emails.map((email) => sendBreakingNewsEmail(email, headline, link))
+      users.map((user) =>
+        sendEmail(user.email, " Breaking News Update", htmlTemplate)
+      )
     );
 
     const failed = results
-      .map((r, i) => (r.status === "rejected" ? emails[i] : null))
+      .map((r, i) => (r.status === "rejected" ? users[i].email : null))
       .filter(Boolean);
 
+    console.log(`✅ Emails sent: ${users.length - failed.length}`);
+    if (failed.length) console.error("❌ Failed emails:", failed);
+
     res.status(200).json({
-      message: `Breaking news sent to ${emails.length} immediate users. ${failed.length} failed.`,
+      message: `Breaking news sent to ${users.length - failed.length} users.`,
       failedEmails: failed,
     });
   } catch (error) {
-    console.error("Error sending breaking news:", error);
-    res.status(500).json({ message: "Failed to send breaking news." });
+    console.error("🔥 Error sending breaking news:", error);
+    res.status(500).json({ message: "Failed to send breaking news.", error: error.message });
   }
 };

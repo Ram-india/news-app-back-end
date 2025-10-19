@@ -3,20 +3,22 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
+// Create transporter once
+const transporter = nodemailer.createTransport({
+  service: "gmail",
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS,
+  },
+});
+
+// Verify connection once on startup
+transporter.verify()
+  .then(() => console.log(" Gmail SMTP ready"))
+  .catch((err) => console.error(" Gmail SMTP error:", err.message));
+
 export const sendEmail = async (to, subject, html) => {
   try {
-    const transporter = nodemailer.createTransport({
-      service: "gmail",
-      auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS, // App password (without spaces!)
-      },
-    });
-
-    // Verify transporter before sending
-    await transporter.verify();
-    console.log("Gmail SMTP connection verified");
-
     const mailOptions = {
       from: `"News App" <${process.env.EMAIL_USER}>`,
       to,
@@ -25,10 +27,10 @@ export const sendEmail = async (to, subject, html) => {
     };
 
     const info = await transporter.sendMail(mailOptions);
-    console.log("Email sent via Gmail:", info.response);
+    console.log(`Email sent to ${to}: ${info.response}`);
     return info;
   } catch (error) {
-    console.error(" Failed to send email:", error.message, error);
+    console.error(`❌ Failed to send email to ${to}:`, error.message);
     throw error;
   }
 };
