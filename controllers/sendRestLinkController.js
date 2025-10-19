@@ -4,7 +4,7 @@ import dotenv from "dotenv";
 import jwt from "jsonwebtoken";
 import sgMail from "@sendgrid/mail";
 
-dotenv.configconfig();
+dotenv.config();
 
 sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
