@@ -9,14 +9,14 @@ export const sendEmail = async (to, subject, html) => {
   try {
     const msg = {
       to,
-      from: process.env.EMAIL_FROM,
+      from: process.env.SENDGRID_EMAIL, 
       subject,
       html,
     };
     await sgMail.send(msg);
     console.log(`Email sent to ${to}`);
   } catch (error) {
-    console.error(`❌ Failed to send email to ${to}:`, error.response?.body || error.message);
+    console.error(` Failed to send email to ${to}:`, error.response?.body || error.message);
     throw error;
   }
 };
