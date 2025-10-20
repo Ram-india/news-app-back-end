@@ -1,13 +1,12 @@
 import axios from "axios";
 import User from "../models/User.js";
-import { sendBreakingNewsEmail } from "../utils/sendEmail.js";
+import { sendBreakingNewsEmail } from "../utils/sendEmail.js"; //
 
 // ======================
 // Get Top Headlines
 // ======================
 export const getTopHeadlines = async (req, res) => {
   try {
-
     const response = await axios.get("https://newsapi.org/v2/top-headlines", {
       params: {
         country: "us",
@@ -26,9 +25,6 @@ export const getTopHeadlines = async (req, res) => {
 // ======================
 export const personalizedNews = async (req, res) => {
   try {
-
-    // console.log("Authenticated user:", req.user);
-
     const user = await User.findById(req.user.userId);
     if (!user) {
       return res.status(404).json({ message: "User not found" });
@@ -47,13 +43,9 @@ export const personalizedNews = async (req, res) => {
     const results = await Promise.all(
       preferences.map(async (category) => {
         try {
-         
-          const response = await axios.get(
-            "https://newsapi.org/v2/top-headlines",
-            {
-              params: { category, country: "us", apiKey: process.env.NEWS_API_KEY },
-            }
-          );
+          const response = await axios.get("https://newsapi.org/v2/top-headlines", {
+            params: { category, country: "us", apiKey: process.env.NEWS_API_KEY },
+          });
 
           return response.data.articles.map((article) => ({
             ...article,
@@ -80,7 +72,6 @@ export const personalizedNews = async (req, res) => {
     res.status(200).json({ articles: allArticles });
   } catch (error) {
     console.error("Critical error fetching personalized news:", error);
-
     return res.status(500).json({
       message: "Failed to fetch personalized news",
       error: error.message,
@@ -99,7 +90,6 @@ export const searchNews = async (req, res) => {
     return res.status(400).json({ message: "Query parameter is required" });
   }
   try {
-
     const response = await axios.get("https://newsapi.org/v2/everything", {
       params: {
         q: query,
@@ -124,7 +114,7 @@ export const sendBreakingNewsToUsers = async (req, res) => {
       return res.status(400).json({ message: "Headline and link are required." });
     }
 
-    // 1️Find users with immediate alerts and matching category (optional filter)
+    // 1️⃣ Find users who enabled immediate alerts and match the category
     const users = await User.find({
       alertFrequency: "immediate",
       preferences: category ? { $in: [category] } : { $exists: true },
@@ -138,42 +128,31 @@ export const sendBreakingNewsToUsers = async (req, res) => {
 
     console.log(`🚀 Sending breaking news to ${users.length} users...`);
 
-    //  Build HTML email
-    const htmlTemplate = `
-      <div style="font-family:sans-serif;line-height:1.6;">
-        <h2 style="color:#dc2626;">Breaking News Alert!</h2>
-        <h3>${headline}</h3>
-        ${content ? `<p>${content}</p>` : ""}
-        <p>
-          <a href="${link}" target="_blank" style="color:#1d4ed8;">Read full story</a>
-        </p>
-        <hr/>
-        <small style="color:#6b7280;">
-          You are receiving this email because you subscribed to immediate news alerts.
-        </small>
-      </div>
-    `;
-
-    // Send to all users in parallel
+    // 2️⃣ Send to all users in parallel using SendGrid wrapper
     const results = await Promise.allSettled(
       users.map((user) =>
-        sendEmail(user.email, " Breaking News Update", htmlTemplate)
+        sendBreakingNewsEmail(user.email, headline, link, content)
       )
     );
 
+    // 3️⃣ Handle success/failure
     const failed = results
       .map((r, i) => (r.status === "rejected" ? users[i].email : null))
       .filter(Boolean);
 
-    console.log(`✅ Emails sent: ${users.length - failed.length}`);
+    console.log(`✅ Emails successfully sent: ${users.length - failed.length}`);
     if (failed.length) console.error("❌ Failed emails:", failed);
 
+    // 4️⃣ Return API response
     res.status(200).json({
       message: `Breaking news sent to ${users.length - failed.length} users.`,
       failedEmails: failed,
     });
   } catch (error) {
     console.error("🔥 Error sending breaking news:", error);
-    res.status(500).json({ message: "Failed to send breaking news.", error: error.message });
+    res.status(500).json({
+      message: "Failed to send breaking news.",
+      error: error.message,
+    });
   }
 };
