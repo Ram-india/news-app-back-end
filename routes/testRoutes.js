@@ -1,15 +1,48 @@
 import express from "express";
-import { sendEmail } from "../utils/sendEmail.js";
+import { sendCategoryNewsEmails } from "../controllers/emailController.js";
 
 const router = express.Router();
 
-router.get("/test-email", async (req, res) => {
+// -------------------------
+// Hourly and Daily
+// -------------------------
+router.get("/hourly", async (req, res) => {
   try {
-    await sendEmail("bvn.ramkumar@gmail.com", "Test from News App", "<h1>✅ SendGrid Test Successful!</h1>");
-    res.json({ message: "Test email sent successfully!" });
-  } catch (error) {
-    console.error("Test email failed:", error.message);
-    res.status(500).json({ error: error.message });
+    await sendCategoryNewsEmails("hourly");
+    res.json({ message: "Hourly email job executed successfully!" });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+router.get("/daily", async (req, res) => {
+  try {
+    await sendCategoryNewsEmails("daily");
+    res.json({ message: "Daily email job executed successfully!" });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// -------------------------
+// Immediate / Breaking News
+// -------------------------
+router.post("/immediate", async (req, res) => {
+  try {
+    const { category, title, url, content } = req.body;
+
+    if (!category || !title || !url) {
+      return res.status(400).json({ message: "category, title, and url are required" });
+    }
+
+    const breakingNews = { category, title, url, content: content || "" };
+
+    await sendCategoryNewsEmails("immediate", breakingNews);
+
+    res.json({ message: "Immediate breaking news emails sent successfully!" });
+  } catch (err) {
+    console.error("Immediate email error:", err);
+    res.status(500).json({ error: err.message });
   }
 });
 
