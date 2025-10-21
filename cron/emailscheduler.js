@@ -1,18 +1,24 @@
-// cron/emailscheduler.js
 import cron from "node-cron";
 import { sendCategoryNewsEmails } from "../controllers/emailController.js";
 
-// Every hour
 cron.schedule("0 * * * *", async () => {
-  console.log("Running hourly news email job...");
-  await sendCategoryNewsEmails("hourly");
+  console.log("⏰ Running hourly news email job...");
+  try {
+    await sendCategoryNewsEmails("hourly");
+    console.log("✅ Hourly job completed successfully!");
+  } catch (err) {
+    console.error("❌ Hourly job failed:", err.message);
+  }
 });
 
-// Every day at 8 AM
 cron.schedule("0 8 * * *", async () => {
-  console.log("Running daily news email job...");
-  await sendCategoryNewsEmails("daily");
+  console.log("🌅 Running daily news email job...");
+  try {
+    await sendCategoryNewsEmails("daily");
+    console.log("✅ Daily job completed successfully!");
+  } catch (err) {
+    console.error("❌ Daily job failed:", err.message);
+  }
 });
 
-// IMMEDIATE is triggered manually via API when breaking news occurs
-console.log("Email scheduler active");
+console.log("✅ Email scheduler active");

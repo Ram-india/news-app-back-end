@@ -54,7 +54,7 @@ app.use(express.json());
 
 // Connect to MongoDB
 connectDB();
-sendCategoryNewsEmails();
+
 
 // Test Route
 app.get("/", (req, res) => {
