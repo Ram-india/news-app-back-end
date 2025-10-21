@@ -9,6 +9,7 @@ import preferenceRoutes from "./routes/preferenceRoutes.js";
 import { sendCategoryNewsEmails } from './controllers/emailController.js';
 import userRoutes from "./routes/userRoutes.js";
 import "./cron/emailscheduler.js";
+import "./cron/immediateScheduler.js";
 import testRoutes from "./routes/testRoutes.js";
 
 dotenv.config();
