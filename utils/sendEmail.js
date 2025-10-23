@@ -3,7 +3,7 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
-// ✅ Set the SendGrid API key
+// Set the SendGrid API key
 if (!process.env.SENDGRID_API_KEY) {
   console.error(" Missing SENDGRID_API_KEY in environment variables.");
 } else {

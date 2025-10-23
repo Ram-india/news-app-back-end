@@ -27,12 +27,13 @@ export const sendCategoryNewsEmails = async (frequency = "daily", breakingNews =
             <h3 style="color:#b91c1c;">BREAKING NEWS - ${breakingNews.category.toUpperCase()}</h3>
             <p>
             <a 
-            href="${process.env.CLIENT_URL}/article?url=${encodeURIComponent(breakingNews.url)}" 
-            target="_blank" 
+            href="${process.env.CLIENT_URL}/dashboard/news/${breakingNews.id || breakingNews._id || ''}" 
+            target="_blank"
             style="color:#1d4ed8;text-decoration:none;"
           >
             ${breakingNews.title}
           </a>
+
             </p>
             <p>${breakingNews.content}</p>
           `;
