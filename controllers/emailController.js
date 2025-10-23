@@ -23,27 +23,34 @@ export const sendCategoryNewsEmails = async (frequency = "daily", breakingNews =
       if (frequency === "immediate" && breakingNews) {
         if (user.preferences.includes(breakingNews.category)) {
           hasNews = true;
+      
+          // ✅ Define newsLink safely
+          const newsLink = breakingNews.id || breakingNews._id
+            ? `${process.env.CLIENT_URL}/dashboard/news/${encodeURIComponent(breakingNews.id || breakingNews._id)}`
+            : breakingNews.url || process.env.CLIENT_URL;
+      
+          // ✅ Use the link in email HTML
           emailContent += `
             <h3 style="color:#b91c1c;">BREAKING NEWS - ${breakingNews.category.toUpperCase()}</h3>
             <p>
-           
-            const newsLink = breakingNews.id || breakingNews._id
-            ? ${process.env.CLIENT_URL}/dashboard/news/${encodeURIComponent(breakingNews.id || breakingNews._id)}
-            : breakingNews.url || process.env.CLIENT_URL;
-          
-          <a href="${newsLink}" target="_blank">${breakingNews.title}</a>
-
+              <a 
+                href="${newsLink}"
+                target="_blank"
+                style="color:#1d4ed8;text-decoration:none;"
+              >
+                ${breakingNews.title}
+              </a>
             </p>
             <p>${breakingNews.content}</p>
           `;
-
+      
           user.emailLogs.push({
             category: breakingNews.category,
             subject: `Breaking News: ${breakingNews.title}`,
             sentAt: new Date(),
           });
         }
-      } 
+      }
       //  HOURLY / DAILY MODE — existing logic
       else {
         for (const category of user.preferences) {
