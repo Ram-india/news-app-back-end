@@ -28,7 +28,7 @@ export const sendCategoryNewsEmails = async (frequency = "daily", breakingNews =
             <p>
            
             const newsLink = breakingNews.id || breakingNews._id
-            ? `${process.env.CLIENT_URL}/dashboard/news/${encodeURIComponent(breakingNews.id || breakingNews._id)}`
+            ? ${process.env.CLIENT_URL}/dashboard/news/${encodeURIComponent(breakingNews.id || breakingNews._id)}
             : breakingNews.url || process.env.CLIENT_URL;
           
           <a href="${newsLink}" target="_blank">${breakingNews.title}</a>
