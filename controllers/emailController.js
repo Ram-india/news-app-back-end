@@ -24,12 +24,12 @@ export const sendCategoryNewsEmails = async (frequency = "daily", breakingNews =
         if (user.preferences.includes(breakingNews.category)) {
           hasNews = true;
       
-          // ✅ Define newsLink safely
+          // Define newsLink safely
           const newsLink = breakingNews.id || breakingNews._id
             ? `${process.env.CLIENT_URL}/dashboard/news/${encodeURIComponent(breakingNews.id || breakingNews._id)}`
             : breakingNews.url || process.env.CLIENT_URL;
       
-          // ✅ Use the link in email HTML
+          // Use the link in email HTML
           emailContent += `
             <h3 style="color:#b91c1c;">BREAKING NEWS - ${breakingNews.category.toUpperCase()}</h3>
             <p>

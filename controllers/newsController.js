@@ -114,7 +114,7 @@ export const sendBreakingNewsToUsers = async (req, res) => {
       return res.status(400).json({ message: "Headline and link are required." });
     }
 
-    // 1️⃣ Find users who enabled immediate alerts and match the category
+    // 1️ Find users who enabled immediate alerts and match the category
     const users = await User.find({
       alertFrequency: "immediate",
       preferences: category ? { $in: [category] } : { $exists: true },
@@ -126,30 +126,30 @@ export const sendBreakingNewsToUsers = async (req, res) => {
         .json({ message: "No users found with immediate alert preference." });
     }
 
-    console.log(`🚀 Sending breaking news to ${users.length} users...`);
+    console.log(`Sending breaking news to ${users.length} users...`);
 
-    // 2️⃣ Send to all users in parallel using SendGrid wrapper
+    // 2️ Send to all users in parallel using SendGrid wrapper
     const results = await Promise.allSettled(
       users.map((user) =>
         sendBreakingNewsEmail(user.email, headline, link, content)
       )
     );
 
-    // 3️⃣ Handle success/failure
+    // 3️ Handle success/failure
     const failed = results
       .map((r, i) => (r.status === "rejected" ? users[i].email : null))
       .filter(Boolean);
 
-    console.log(`✅ Emails successfully sent: ${users.length - failed.length}`);
-    if (failed.length) console.error("❌ Failed emails:", failed);
+    console.log(` Emails successfully sent: ${users.length - failed.length}`);
+    if (failed.length) console.error(" Failed emails:", failed);
 
-    // 4️⃣ Return API response
+    // 4 Return API response
     res.status(200).json({
       message: `Breaking news sent to ${users.length - failed.length} users.`,
       failedEmails: failed,
     });
   } catch (error) {
-    console.error("🔥 Error sending breaking news:", error);
+    console.error(" Error sending breaking news:", error);
     res.status(500).json({
       message: "Failed to send breaking news.",
       error: error.message,
