@@ -23,7 +23,7 @@ app.use((req, res, next) => {
   console.log("Request Path:", req.path, "Origin:", req.headers.origin);
   next();
 });
-
+app.use(cors());
 app.use(bodyParser.json());
 app.use(express.json());
 
